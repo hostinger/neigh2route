@@ -1,4 +1,4 @@
-VERSION=1.2.5
+VERSION=1.3.0
 PACKAGES_DIR=compiled_packages
 
 all: test build
@@ -14,4 +14,4 @@ run:
 	go run ./cmd/neigh2route
 
 build:
-	CGO_ENABLED=0 GOARCH=amd64 GOOS=linux go build -o ${PACKAGES_DIR}/neigh2route-${VERSION}-linux ./cmd/neigh2route
+	CGO_ENABLED=1 GOARCH=amd64 GOOS=linux go build -o ${PACKAGES_DIR}/neigh2route-${VERSION}-linux ./cmd/neigh2route

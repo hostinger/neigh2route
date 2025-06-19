@@ -4,6 +4,7 @@ go 1.21.5
 
 require (
 	github.com/go-ping/ping v1.1.0
+	github.com/google/gopacket v1.1.19
 	github.com/vishvananda/netlink v1.2.1-beta.2
 )
 

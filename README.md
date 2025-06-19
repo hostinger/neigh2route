@@ -20,3 +20,7 @@ Then `neigh2route` adds:
 
 ## 💡 Use Cases
 - Announce your neighbors via dynamic routing protocols, like BGP.
+
+## Dependencies
+
+libpcap-dev must be installed if you want to use sniffer feature
