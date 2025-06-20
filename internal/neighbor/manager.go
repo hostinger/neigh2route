@@ -5,8 +5,8 @@ import (
 	"sync"
 	"time"
 
-	"github.com/tomvil/neigh2route/internal/logger"
-	"github.com/tomvil/neigh2route/pkg/netutils"
+	"github.com/hostinger/neigh2route/internal/logger"
+	"github.com/hostinger/neigh2route/pkg/netutils"
 	"github.com/vishvananda/netlink"
 )
 

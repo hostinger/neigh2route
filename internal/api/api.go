@@ -4,8 +4,10 @@ import (
 	"encoding/json"
 	"net/http"
 	"sort"
+	"time"
 
-	"github.com/tomvil/neigh2route/internal/neighbor"
+	"github.com/hostinger/neigh2route/internal/neighbor"
+	"github.com/hostinger/neigh2route/internal/sniffer"
 )
 
 type API struct {
@@ -34,4 +36,26 @@ func (a *API) ListNeighborsHandler(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(output)
+}
+
+func (a *API) ListSniffedInterfacesHandler(w http.ResponseWriter, r *http.Request) {
+	type SniffedInterface struct {
+		Interface string    `json:"interface"`
+		StartedAt time.Time `json:"started_at"`
+	}
+
+	var sniffed []SniffedInterface
+	for iface, started := range sniffer.ListActiveSniffers() {
+		sniffed = append(sniffed, SniffedInterface{
+			Interface: iface,
+			StartedAt: started,
+		})
+	}
+
+	sort.Slice(sniffed, func(i, j int) bool {
+		return sniffed[i].Interface < sniffed[j].Interface
+	})
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(sniffed)
 }

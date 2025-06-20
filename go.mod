@@ -1,4 +1,4 @@
-module github.com/tomvil/neigh2route
+module github.com/hostinger/neigh2route
 
 go 1.23.0
 
