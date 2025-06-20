@@ -3,7 +3,7 @@ package netutils
 import (
 	"net"
 
-	"github.com/tomvil/neigh2route/internal/logger"
+	"github.com/hostinger/neigh2route/internal/logger"
 	"github.com/vishvananda/netlink"
 )
 

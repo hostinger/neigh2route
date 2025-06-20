@@ -5,14 +5,36 @@ import (
 	"net"
 	"os"
 	"regexp"
+	"sync"
 	"time"
 
 	"github.com/google/gopacket"
 	"github.com/google/gopacket/layers"
 	"github.com/google/gopacket/pcap"
-	"github.com/tomvil/neigh2route/internal/logger"
+	"github.com/hostinger/neigh2route/internal/logger"
 	"github.com/vishvananda/netlink"
 )
+
+type SnifferInfo struct {
+	CancelFunc context.CancelFunc
+	StartedAt  time.Time
+}
+
+var (
+	activeSniffersMu sync.Mutex
+	activeSniffers   = make(map[string]SnifferInfo)
+)
+
+func ListActiveSniffers() map[string]time.Time {
+	activeSniffersMu.Lock()
+	defer activeSniffersMu.Unlock()
+
+	result := make(map[string]time.Time)
+	for iface, info := range activeSniffers {
+		result[iface] = info.StartedAt
+	}
+	return result
+}
 
 func neighborAlreadyValid(ip net.IP) (bool, string) {
 	neighbors, err := netlink.NeighList(0, netlink.FAMILY_V6)
@@ -157,8 +179,6 @@ func getTapInterfaces() []string {
 }
 
 func StartSnifferManager(targetIface string) {
-	activeSniffers := make(map[string]context.CancelFunc)
-
 	logger.Info("Starting NA sniffer. Scanning for tap interfaces every 30 seconds...")
 
 	for {
@@ -172,16 +192,23 @@ func StartSnifferManager(targetIface string) {
 			if _, exists := activeSniffers[sniffIface]; !exists {
 				logger.Info("[Sniffer-Event] New tap detected: %s — starting sniffer", sniffIface)
 				ctx, cancel := context.WithCancel(context.Background())
-				activeSniffers[sniffIface] = cancel
+				activeSniffersMu.Lock()
+				activeSniffers[sniffIface] = SnifferInfo{
+					CancelFunc: cancel,
+					StartedAt:  time.Now(),
+				}
+				activeSniffersMu.Unlock()
 				go sniffNAWithContext(ctx, sniffIface, targetIface)
 			}
 		}
 
-		for sniffIface, cancel := range activeSniffers {
+		for sniffIface, info := range activeSniffers {
 			if !currentSet[sniffIface] {
 				logger.Info("[Sniffer-Event] Tap removed: %s — stopping sniffer", sniffIface)
-				cancel()
+				info.CancelFunc()
+				activeSniffersMu.Lock()
 				delete(activeSniffers, sniffIface)
+				activeSniffersMu.Unlock()
 			}
 		}
 

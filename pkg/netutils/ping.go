@@ -4,7 +4,7 @@ import (
 	"time"
 
 	"github.com/go-ping/ping"
-	"github.com/tomvil/neigh2route/internal/logger"
+	"github.com/hostinger/neigh2route/internal/logger"
 )
 
 func Ping(ip string) error {

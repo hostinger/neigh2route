@@ -7,10 +7,10 @@ import (
 	"os/signal"
 	"syscall"
 
-	"github.com/tomvil/neigh2route/internal/api"
-	"github.com/tomvil/neigh2route/internal/logger"
-	"github.com/tomvil/neigh2route/internal/neighbor"
-	"github.com/tomvil/neigh2route/internal/sniffer"
+	"github.com/hostinger/neigh2route/internal/api"
+	"github.com/hostinger/neigh2route/internal/logger"
+	"github.com/hostinger/neigh2route/internal/neighbor"
+	"github.com/hostinger/neigh2route/internal/sniffer"
 )
 
 var (
@@ -43,6 +43,7 @@ func main() {
 
 	api := &api.API{NM: nm}
 	http.HandleFunc("/neighbors", api.ListNeighborsHandler)
+	http.HandleFunc("/sniffed-interfaces", api.ListSniffedInterfacesHandler)
 
 	go func() {
 		logger.Info("API server listening on %s", *apiAddress)
