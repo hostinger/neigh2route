@@ -50,6 +50,8 @@ func neighborAlreadyValid(ip net.IP) (bool, string) {
 				return true, "REACHABLE"
 			case netlink.NUD_STALE:
 				return true, "STALE"
+			case netlink.NUD_DELAY:
+				return true, "DELAY"
 			}
 		}
 	}
