@@ -170,6 +170,8 @@ func (nm *NeighborManager) MonitorNeighbors() {
 			nm.RemoveNeighbor(update.Neigh.IP, update.Neigh.LinkIndex)
 		}
 	}
+
+	logger.Error("MonitorNeighbors: netlink updates channel unexpectedly closed")
 }
 
 func (nm *NeighborManager) SendPings() {
