@@ -148,29 +148,7 @@ func (nm *NeighborManager) MonitorNeighbors() {
 		}
 
 		for update := range updates {
-			if nm.targetInterfaceIndex > 0 && update.Neigh.LinkIndex != nm.targetInterfaceIndex {
-				continue
-			}
-
-			if update.Neigh.IP == nil {
-				logger.Warn("Received neighbor update with nil IP, skipping")
-				continue
-			}
-
-			if update.Neigh.IP.IsLinkLocalUnicast() {
-				continue
-			}
-
-			logger.Debug("Received neighbor update: IP=%s, State=%s, Flags=%s, LinkIndex=%d",
-				update.Neigh.IP, neighborStateToString(update.Neigh.State), neighborFlagsToString(update.Neigh.Flags), update.Neigh.LinkIndex)
-
-			if (update.Neigh.State&(netlink.NUD_REACHABLE|netlink.NUD_STALE)) != 0 && !nm.isNeighborExternallyLearned(update.Neigh.Flags) {
-				nm.AddNeighbor(update.Neigh.IP, update.Neigh.LinkIndex)
-			}
-
-			if update.Neigh.State == netlink.NUD_FAILED || nm.isNeighborExternallyLearned(update.Neigh.Flags) {
-				nm.RemoveNeighbor(update.Neigh.IP, update.Neigh.LinkIndex)
-			}
+			nm.processNeighborUpdate(update)
 		}
 
 		close(done)
