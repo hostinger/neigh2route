@@ -2,6 +2,7 @@ package neighbor
 
 import (
 	"net"
+	"os"
 	"sync"
 	"time"
 
@@ -136,42 +137,72 @@ func (nm *NeighborManager) InitializeNeighborTable() error {
 }
 
 func (nm *NeighborManager) MonitorNeighbors() {
-	updates := make(chan netlink.NeighUpdate)
-	done := make(chan struct{})
-	defer close(done)
+	for {
+		updates := make(chan netlink.NeighUpdate)
+		done := make(chan struct{})
 
-	if err := netlink.NeighSubscribe(updates, done); err != nil {
-		logger.Error("Failed to subscribe to neighbor updates: %v (interface: %s, index: %d)",
-			err, nm.targetInterface, nm.targetInterfaceIndex)
+		if err := netlink.NeighSubscribe(updates, done); err != nil {
+			logger.Error("Failed to subscribe to neighbor updates: %v (interface: %s, index: %d)",
+				err, nm.targetInterface, nm.targetInterfaceIndex)
+			os.Exit(1)
+		}
+
+		for update := range updates {
+			if nm.targetInterfaceIndex > 0 && update.Neigh.LinkIndex != nm.targetInterfaceIndex {
+				continue
+			}
+
+			if update.Neigh.IP == nil {
+				logger.Warn("Received neighbor update with nil IP, skipping")
+				continue
+			}
+
+			if update.Neigh.IP.IsLinkLocalUnicast() {
+				continue
+			}
+
+			logger.Debug("Received neighbor update: IP=%s, State=%s, Flags=%s, LinkIndex=%d",
+				update.Neigh.IP, neighborStateToString(update.Neigh.State), neighborFlagsToString(update.Neigh.Flags), update.Neigh.LinkIndex)
+
+			if (update.Neigh.State&(netlink.NUD_REACHABLE|netlink.NUD_STALE)) != 0 && !nm.isNeighborExternallyLearned(update.Neigh.Flags) {
+				nm.AddNeighbor(update.Neigh.IP, update.Neigh.LinkIndex)
+			}
+
+			if update.Neigh.State == netlink.NUD_FAILED || nm.isNeighborExternallyLearned(update.Neigh.Flags) {
+				nm.RemoveNeighbor(update.Neigh.IP, update.Neigh.LinkIndex)
+			}
+		}
+
+		close(done)
+		logger.Error("MonitorNeighbors: netlink updates channel unexpectedly closed. Restarting monitor...")
+		time.Sleep(1 * time.Second)
+	}
+}
+
+func (nm *NeighborManager) processNeighborUpdate(update netlink.NeighUpdate) {
+	if nm.targetInterfaceIndex > 0 && update.Neigh.LinkIndex != nm.targetInterfaceIndex {
+		return
 	}
 
-	for update := range updates {
-		if nm.targetInterfaceIndex > 0 && update.Neigh.LinkIndex != nm.targetInterfaceIndex {
-			continue
-		}
-
-		if update.Neigh.IP == nil {
-			logger.Warn("Received neighbor update with nil IP, skipping")
-			continue
-		}
-
-		if update.Neigh.IP.IsLinkLocalUnicast() {
-			continue
-		}
-
-		logger.Debug("Received neighbor update: IP=%s, State=%s, Flags=%s, LinkIndex=%d",
-			update.Neigh.IP, neighborStateToString(update.Neigh.State), neighborFlagsToString(update.Neigh.Flags), update.Neigh.LinkIndex)
-
-		if (update.Neigh.State&(netlink.NUD_REACHABLE|netlink.NUD_STALE)) != 0 && !nm.isNeighborExternallyLearned(update.Neigh.Flags) {
-			nm.AddNeighbor(update.Neigh.IP, update.Neigh.LinkIndex)
-		}
-
-		if update.Neigh.State == netlink.NUD_FAILED || nm.isNeighborExternallyLearned(update.Neigh.Flags) {
-			nm.RemoveNeighbor(update.Neigh.IP, update.Neigh.LinkIndex)
-		}
+	if update.Neigh.IP == nil {
+		logger.Warn("Received neighbor update with nil IP, skipping")
+		return
 	}
 
-	logger.Error("MonitorNeighbors: netlink updates channel unexpectedly closed")
+	if update.Neigh.IP.IsLinkLocalUnicast() {
+		return
+	}
+
+	logger.Debug("Received neighbor update: IP=%s, State=%s, Flags=%s, LinkIndex=%d",
+		update.Neigh.IP, neighborStateToString(update.Neigh.State), neighborFlagsToString(update.Neigh.Flags), update.Neigh.LinkIndex)
+
+	if (update.Neigh.State&(netlink.NUD_REACHABLE|netlink.NUD_STALE)) != 0 && !nm.isNeighborExternallyLearned(update.Neigh.Flags) {
+		nm.AddNeighbor(update.Neigh.IP, update.Neigh.LinkIndex)
+	}
+
+	if update.Neigh.State == netlink.NUD_FAILED || nm.isNeighborExternallyLearned(update.Neigh.Flags) {
+		nm.RemoveNeighbor(update.Neigh.IP, update.Neigh.LinkIndex)
+	}
 }
 
 func (nm *NeighborManager) SendPings() {
