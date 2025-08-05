@@ -34,7 +34,7 @@ func (n Neighbor) LinkIndexChanged(linkIndex int) bool {
 	return n.LinkIndex != linkIndex
 }
 
-func (nm *NeighborManager) AddNeighbor(ip net.IP, linkIndex int) {
+func (nm *NeighborManager) AddNeighbor(ip net.IP, linkIndex int, hwAddr net.HardwareAddr) {
 	var shouldRemoveRoute bool
 
 	nm.mu.Lock()
@@ -56,7 +56,11 @@ func (nm *NeighborManager) AddNeighbor(ip net.IP, linkIndex int) {
 		}
 	}
 
-	nm.reachableNeighbors[ip.String()] = Neighbor{IP: ip, LinkIndex: linkIndex}
+	nm.reachableNeighbors[ip.String()] = Neighbor{
+		IP:           ip,
+		LinkIndex:    linkIndex,
+		HardwareAddr: hwAddr,
+	}
 	nm.mu.Unlock()
 
 	if err := netutils.AddRoute(ip, linkIndex); err != nil {
@@ -127,7 +131,7 @@ func (nm *NeighborManager) InitializeNeighborTable() error {
 
 		if (n.State&(netlink.NUD_REACHABLE|netlink.NUD_STALE)) != 0 && !nm.isNeighborExternallyLearned(n.Flags) {
 			logger.Info("Adding neighbor with IP=%s, LinkIndex=%d", n.IP, n.LinkIndex)
-			nm.AddNeighbor(n.IP, n.LinkIndex)
+			nm.AddNeighbor(n.IP, n.LinkIndex, n.HardwareAddr)
 		}
 	}
 
@@ -175,7 +179,7 @@ func (nm *NeighborManager) processNeighborUpdate(update netlink.NeighUpdate) {
 		update.Neigh.IP, neighborStateToString(update.Neigh.State), neighborFlagsToString(update.Neigh.Flags), update.Neigh.LinkIndex)
 
 	if (update.Neigh.State&(netlink.NUD_REACHABLE|netlink.NUD_STALE)) != 0 && !nm.isNeighborExternallyLearned(update.Neigh.Flags) {
-		nm.AddNeighbor(update.Neigh.IP, update.Neigh.LinkIndex)
+		nm.AddNeighbor(update.Neigh.IP, update.Neigh.LinkIndex, update.Neigh.HardwareAddr)
 	}
 
 	if update.Neigh.State == netlink.NUD_FAILED || nm.isNeighborExternallyLearned(update.Neigh.Flags) {
