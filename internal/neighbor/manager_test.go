@@ -36,7 +36,7 @@ func TestAddNeighbor(t *testing.T) {
 	nm, _ := NewNeighborManager("lo")
 
 	ip := net.ParseIP("10.10.10.10")
-	nm.AddNeighbor(ip, 1)
+	nm.AddNeighbor(ip, 1, nil)
 
 	if len(nm.reachableNeighbors) != 1 {
 		t.Errorf("Expected 1, got %d", len(nm.reachableNeighbors))
@@ -47,7 +47,7 @@ func TestRemoveNeighbor(t *testing.T) {
 	nm, _ := NewNeighborManager("lo")
 
 	ip := net.ParseIP("10.10.10.10")
-	nm.AddNeighbor(ip, 1)
+	nm.AddNeighbor(ip, 1, nil)
 	nm.RemoveNeighbor(ip, 1)
 
 	if len(nm.reachableNeighbors) != 0 {
