@@ -1,7 +1,9 @@
 package logger
 
 import (
+	"fmt"
 	"log"
+	"os"
 )
 
 var debugEnabled bool = false
@@ -10,24 +12,30 @@ func Init(debug bool) {
 	debugEnabled = debug
 }
 
+func logWithLevel(level string, format string, v ...interface{}) {
+	msg := fmt.Sprintf(format, v...)
+	log.Printf("level=%s msg=%q", level, msg)
+}
+
 func Debug(format string, v ...interface{}) {
 	if debugEnabled {
-		log.Printf("[DEBUG] "+format, v...)
+		logWithLevel("debug", format, v...)
 	}
 }
 
 func Info(format string, v ...interface{}) {
-	log.Printf("[INFO] "+format, v...)
+	logWithLevel("info", format, v...)
 }
 
 func Warn(format string, v ...interface{}) {
-	log.Printf("[WARN] "+format, v...)
+	logWithLevel("warn", format, v...)
 }
 
 func Error(format string, v ...interface{}) {
-	log.Printf("[ERROR] "+format, v...)
+	logWithLevel("error", format, v...)
 }
 
 func Fatal(format string, v ...interface{}) {
-	log.Fatalf("[FATAL] "+format, v...)
+	logWithLevel("fatal", format, v...)
+	os.Exit(1)
 }
