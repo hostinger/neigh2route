@@ -1,4 +1,4 @@
-VERSION=1.3.8
+VERSION=1.3.9
 PACKAGES_DIR=compiled_packages
 
 all: test build

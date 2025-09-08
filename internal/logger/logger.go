@@ -14,7 +14,7 @@ func Init(debug bool) {
 
 func logWithLevel(level string, format string, v ...interface{}) {
 	msg := fmt.Sprintf(format, v...)
-	log.Printf("level=%s %q", level, msg)
+	log.Printf("level=%s msg=%s", level, msg)
 }
 
 func Debug(format string, v ...interface{}) {
