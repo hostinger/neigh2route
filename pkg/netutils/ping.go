@@ -10,7 +10,7 @@ import (
 func Ping(ip string) error {
 	pinger, err := ping.NewPinger(ip)
 	if err != nil {
-		logger.Error("failed to create pinger: %w", err)
+		logger.Error("failed to create pinger: %v", err)
 		return err
 	}
 
@@ -21,7 +21,7 @@ func Ping(ip string) error {
 
 	err = pinger.Run()
 	if err != nil {
-		logger.Error("failed to run pinger: %w", err)
+		logger.Error("failed to run pinger: %v", err)
 		return err
 	}
 

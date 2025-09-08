@@ -13,7 +13,7 @@ func routeExists(dst *net.IPNet, linkIndex int) (bool, error) {
 		Dst:       dst,
 	}, netlink.RT_FILTER_DST|netlink.RT_FILTER_OIF)
 	if err != nil {
-		logger.Error("Failed to list routes for dst %s on link %d: %w", dst.String(), linkIndex, err)
+		logger.Error("Failed to list routes for dst %s on link %d: %v", dst.String(), linkIndex, err)
 		return false, err
 	}
 
@@ -36,7 +36,7 @@ func AddRoute(ip net.IP, linkIndex int) error {
 
 	exists, err := routeExists(routeDst, linkIndex)
 	if err != nil {
-		logger.Error("Failed to check if route exists for %s: %w", ip.String(), err)
+		logger.Error("Failed to check if route exists for %s: %v", ip.String(), err)
 		return err
 	}
 
@@ -51,7 +51,7 @@ func AddRoute(ip net.IP, linkIndex int) error {
 	}
 
 	if err := netlink.RouteAdd(route); err != nil {
-		logger.Error("Failed to add route for %s: %w", ip.String(), err)
+		logger.Error("Failed to add route for %s: %v", ip.String(), err)
 		return err
 	}
 
@@ -69,7 +69,7 @@ func RemoveRoute(ip net.IP, linkIndex int) error {
 
 	exists, err := routeExists(routeDst, linkIndex)
 	if err != nil {
-		logger.Error("Failed to check if route exists for %s: %w", ip.String(), err)
+		logger.Error("Failed to check if route exists for %s: %v", ip.String(), err)
 		return err
 	}
 
@@ -84,7 +84,7 @@ func RemoveRoute(ip net.IP, linkIndex int) error {
 	}
 
 	if err := netlink.RouteDel(route); err != nil {
-		logger.Error("Failed to remove route for %s: %w", ip.String(), err)
+		logger.Error("Failed to remove route for %s: %v", ip.String(), err)
 		return err
 	}
 
