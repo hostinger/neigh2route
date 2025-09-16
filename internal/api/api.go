@@ -99,8 +99,8 @@ func (a *API) ListSniffedInterfacesHandler(w http.ResponseWriter, r *http.Reques
 
 	type SniffedInterface struct {
 		Interface string        `json:"interface"`
-		StartedAt time.Time      `json:"started_at"`
-		Uptime    time.Duration  `json:"uptime_seconds"`
+		StartedAt time.Time     `json:"started_at"`
+		Uptime    time.Duration `json:"uptime_seconds"`
 	}
 
 	type SniffersResponse struct {
