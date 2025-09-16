@@ -12,12 +12,12 @@ func TestNewNeighborManager(t *testing.T) {
 		t.Errorf("Expected no error, got %s", err)
 	}
 
-	if nm.targetInterface != "lo" {
-		t.Errorf("Expected lo, got %s", nm.targetInterface)
+	if nm.TargetInterface != "lo" {
+		t.Errorf("Expected lo, got %s", nm.TargetInterface)
 	}
 
-	if nm.targetInterfaceIndex != 1 {
-		t.Errorf("Expected 1, got %d", nm.targetInterfaceIndex)
+	if nm.TargetInterfaceIndex != 1 {
+		t.Errorf("Expected 1, got %d", nm.TargetInterfaceIndex)
 	}
 }
 
@@ -38,8 +38,8 @@ func TestAddNeighbor(t *testing.T) {
 	ip := net.ParseIP("10.10.10.10")
 	nm.AddNeighbor(ip, 1, nil)
 
-	if len(nm.reachableNeighbors) != 1 {
-		t.Errorf("Expected 1, got %d", len(nm.reachableNeighbors))
+	if len(nm.ReachableNeighbors) != 1 {
+		t.Errorf("Expected 1, got %d", len(nm.ReachableNeighbors))
 	}
 }
 
@@ -50,7 +50,7 @@ func TestRemoveNeighbor(t *testing.T) {
 	nm.AddNeighbor(ip, 1, nil)
 	nm.RemoveNeighbor(ip, 1)
 
-	if len(nm.reachableNeighbors) != 0 {
-		t.Errorf("Expected 0, got %d", len(nm.reachableNeighbors))
+	if len(nm.ReachableNeighbors) != 0 {
+		t.Errorf("Expected 0, got %d", len(nm.ReachableNeighbors))
 	}
 }

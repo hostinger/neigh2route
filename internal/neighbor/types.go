@@ -7,9 +7,9 @@ import (
 
 type NeighborManager struct {
 	mu                   sync.Mutex
-	reachableNeighbors   map[string]Neighbor
-	targetInterface      string
-	targetInterfaceIndex int
+	ReachableNeighbors   map[string]Neighbor
+	TargetInterface      string
+	TargetInterfaceIndex int
 }
 
 type Neighbor struct {
