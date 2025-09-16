@@ -22,6 +22,7 @@ var (
 
 func main() {
 	flag.Parse()
+	logger.Init(*debugMode)
 
 	if *snifferMode {
 		if *listenInterface == "" {
@@ -29,8 +30,6 @@ func main() {
 		}
 		go sniffer.StartSnifferManager(*listenInterface)
 	}
-
-	logger.Init(*debugMode)
 
 	nm, err := neighbor.NewNeighborManager(*listenInterface)
 	if err != nil {
